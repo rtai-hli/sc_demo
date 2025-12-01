@@ -52,14 +52,16 @@ export default function Wheel({ items }: WheelProps) {
 
   const spinWheel = () => {
     if (items.length === 0 || isSpinning) return;
-    
+
     setIsSpinning(true);
     setSelectedItem(null);
-    
+
     // Random rotation (multiple full rotations + random angle)
     const randomItemIndex = Math.floor(Math.random() * items.length);
     const anglePerSegment = 360 / items.length;
-    const targetAngle = 360 * 5 + (360 - (randomItemIndex * anglePerSegment + anglePerSegment / 2));
+    // Calculate rotation to align selected segment's center with the top arrow
+    // Segments start at -90°, so we use 90° (not 360°) to align with top (0°)
+    const targetAngle = 360 * 5 + (90 - (randomItemIndex * anglePerSegment + anglePerSegment / 2));
     
     rotationRef.current += targetAngle;
     
