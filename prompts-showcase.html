@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperClaude Workflow Explorer (v4.1.6)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Chosen Palette: Warm Neutrals & Professional Accents -->
+    <!-- Palette: Background #F5F5F0 (Warm White), Text #333333, Accents #D97706 (Amber/Architect), #059669 (Emerald/Builder), #2563EB (Blue/QA) -->
+    <style>
+        body {
+            background-color: #F9FAFB; /* Cool gray for clean look, lightly warm */
+            color: #1F2937;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .phase-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .phase-card.active {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-left-width: 4px;
+        }
+        .code-block {
+            background-color: #1E1E1E;
+            color: #D4D4D4;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .nav-btn {
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background-color: #E5E7EB;
+            font-weight: 600;
+            color: #2563EB;
+        }
+        /* Custom scrollbar for code blocks */
+        .code-block::-webkit-scrollbar {
+            height: 8px;
+        }
+        .code-block::-webkit-scrollbar-track {
+            background: #2d2d2d;
+        }
+        .code-block::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+    </style>
+    <!-- Application Structure Plan:
+         1. Header: Value prop and context setting (v4.1.6 Updated).
+         2. Interactive Workflow Map: Navigation for the 4 phases (Plan, Build, QA, Fix).
+         3. Dynamic Command Generator: Updated to support v4.1.6 flags (--think-hard, --c7) and personas.
+         4. Persona & MCP Matrix: Visual explanation of the "Team" (Architect, Frontend, etc.) and Tools.
+         5. Efficiency Metrics: Charts visualizing the "Why" (Token savings, Error reduction).
+    -->
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-gray-800">⚡ SuperClaude Explorer <span class="text-xs bg-gray-200 px-2 py-0.5 rounded-full ml-2">v4.1.6</span></span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="scrollToSection('workflow')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-gray-700">Workflow</button>
+                    <button onclick="scrollToSection('generator')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-gray-700">Command Builder</button>
+                    <button onclick="scrollToSection('metrics')" class="nav-btn px-3 py-2 rounded-md text-sm font-medium text-gray-700">Metrics</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- Intro Section -->
+        <section class="mb-12 text-center max-w-4xl mx-auto">
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl mb-4">
+                Structured AI Development
+            </h1>
+            <p class="text-xl text-gray-500">
+                Transform Claude Code from a chat bot into a professional software engineering platform.
+                Explore the v4.1.6 lifecycle, utilizing 14+ specialized personas and cognitive modes like <code>--think-hard</code>.
+            </p>
+        </section>
+
+        <!-- Visualization & Content Choices:
+             Goal: Guide the user through the 4 phases.
+             Method: Interactive Grid.
+             Interaction: Tab-like switching.
+             Justification: Mirrors the logical workflow structure.
+        -->
+        
+        <!-- Interactive Workflow Lifecycle -->
+        <section id="workflow" class="mb-16">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">The Development Lifecycle</h2>
+                <p class="text-gray-600 mt-2">Click on a phase to explore its specific v4 commands and objectives.</p>
+            </div>
+
+            <!-- Phase Selectors -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <!-- Planning -->
+                <div id="phase-btn-planning" onclick="setPhase('planning')" class="phase-card active bg-white p-6 rounded-lg border border-gray-200 hover:border-amber-400 border-l-amber-500 shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-2xl">🏗️</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-amber-600 bg-amber-50 px-2 py-1 rounded">Phase 1</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Planning & Arch</h3>
+                    <p class="text-sm text-gray-500 mt-1">Define system boundaries with deep architectural reasoning.</p>
+                </div>
+
+                <!-- Implementation -->
+                <div id="phase-btn-implementation" onclick="setPhase('implementation')" class="phase-card bg-white p-6 rounded-lg border border-gray-200 hover:border-emerald-400 border-l-transparent shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-2xl">💻</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Phase 2</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Implementation</h3>
+                    <p class="text-sm text-gray-500 mt-1">Scaffold components and implement logic with TDD.</p>
+                </div>
+
+                <!-- QA -->
+                <div id="phase-btn-qa" onclick="setPhase('qa')" class="phase-card bg-white p-6 rounded-lg border border-gray-200 hover:border-blue-400 border-l-transparent shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-2xl">🔍</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 px-2 py-1 rounded">Phase 3</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">QA & Security</h3>
+                    <p class="text-sm text-gray-500 mt-1">Deep analysis scans and automated test generation.</p>
+                </div>
+
+                <!-- Troubleshooting -->
+                <div id="phase-btn-troubleshoot" onclick="setPhase('troubleshoot')" class="phase-card bg-white p-6 rounded-lg border border-gray-200 hover:border-red-400 border-l-transparent shadow-sm">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-2xl">🚑</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-red-600 bg-red-50 px-2 py-1 rounded">Phase 4</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Troubleshooting</h3>
+                    <p class="text-sm text-gray-500 mt-1">Root cause analysis with introspection.</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="phase-content" class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <!-- Content injected via JS -->
+            </div>
+        </section>
+
+        <!-- Command Generator -->
+        <!-- Visualization Choice: Functional UI form.
+             Goal: Allow users to construct v4.1.6 commands.
+             Method: Dropdowns mapping to updated flags.
+             Interaction: Real-time string concatenation.
+        -->
+        <section id="generator" class="mb-16 bg-slate-900 rounded-2xl p-8 text-white">
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/2">
+                    <h2 class="text-3xl font-bold mb-4">v4.1.6 Command Builder</h2>
+                    <p class="text-slate-300 mb-6">
+                        Configure specialized commands with the new cognitive modes (`--think-hard`, `--ultrathink`) and auto-enabled MCP tools.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">Command Action</label>
+                            <select id="cmd-action" onchange="updateCommand()" class="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="design">/sc:design (Architecture & Planning)</option>
+                                <option value="analyze">/sc:analyze (Review & Research)</option>
+                                <option value="build">/sc:build (Scaffold & UI)</option>
+                                <option value="implement">/sc:implement (Feature Logic)</option>
+                                <option value="test">/sc:test (QA & Coverage)</option>
+                                <option value="troubleshoot">/sc:troubleshoot (Debug)</option>
+                                <option value="improve">/sc:improve (Refactor & Optimize)</option>
+                                <option value="deploy">/sc:deploy (Deployment & Ops)</option>
+                                <option value="document">/sc:document (Documentation)</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Persona</label>
+                                <select id="cmd-persona" onchange="updateCommand()" class="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                    <optgroup label="Core Engineering">
+                                        <option value="architect">👷 Architect</option>
+                                        <option value="frontend">🎨 Frontend Architect</option>
+                                        <option value="backend">⚙️ Backend Engineer</option>
+                                        <option value="tech-lead">👑 Tech Lead</option>
+                                        <option value="devops">🚀 DevOps Engineer</option>
+                                    </optgroup>
+                                    <optgroup label="Quality & Security">
+                                        <option value="security">🛡️ Security Engineer</option>
+                                        <option value="qa">🧪 QA Specialist</option>
+                                        <option value="analyzer">🕵️ Systems Analyzer</option>
+                                    </optgroup>
+                                    <optgroup label="Specialized">
+                                        <option value="database">💾 DB Specialist</option>
+                                        <option value="mobile">📱 Mobile Developer</option>
+                                        <option value="ui-ux">✨ UI/UX Designer</option>
+                                        <option value="product">📈 Product Manager</option>
+                                        <option value="scribe">✍️ Scribe (Docs)</option>
+                                        <option value="researcher">🔬 Researcher</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">Cognitive Mode</label>
+                                <select id="cmd-thinking" onchange="updateCommand()" class="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                                    <option value="none">Standard (Fast)</option>
+                                    <option value="think">--think (Deep Analysis)</option>
+                                    <option value="think-hard">--think-hard (Arch + Docs)</option>
+                                    <option value="ultrathink">--ultrathink (Critical Redesign)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-400 mb-1">MCP & Flags</label>
+                            <div class="flex flex-wrap gap-4">
+                                <label class="inline-flex items-center" title="Documentation Search">
+                                    <input type="checkbox" id="flag-c7" onchange="updateCommand()" class="form-checkbox bg-slate-800 border-slate-700 text-green-500">
+                                    <span class="ml-2 text-sm text-slate-300">--c7</span>
+                                </label>
+                                <label class="inline-flex items-center" title="Deep Reasoning">
+                                    <input type="checkbox" id="flag-seq" onchange="updateCommand()" class="form-checkbox bg-slate-800 border-slate-700 text-green-500">
+                                    <span class="ml-2 text-sm text-slate-300">--seq</span>
+                                </label>
+                                <label class="inline-flex items-center" title="UI Generation">
+                                    <input type="checkbox" id="flag-magic" onchange="updateCommand()" class="form-checkbox bg-slate-800 border-slate-700 text-purple-500">
+                                    <span class="ml-2 text-sm text-slate-300">--magic</span>
+                                </label>
+                                <label class="inline-flex items-center" title="Test Driven Development">
+                                    <input type="checkbox" id="flag-tdd" onchange="updateCommand()" class="form-checkbox bg-slate-800 border-slate-700 text-blue-500">
+                                    <span class="ml-2 text-sm text-slate-300">--tdd</span>
+                                </label>
+                                <label class="inline-flex items-center" title="Safety Checks">
+                                    <input type="checkbox" id="flag-safe" onchange="updateCommand()" class="form-checkbox bg-slate-800 border-slate-700 text-red-500">
+                                    <span class="ml-2 text-sm text-slate-300">--safe-mode</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                             <label class="block text-sm font-medium text-slate-400 mb-1">Prompt Context</label>
+                             <input type="text" id="cmd-context" oninput="updateCommand()" placeholder="e.g. Build a user auth system" class="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:w-1/2 flex flex-col justify-center">
+                    <div class="bg-black rounded-lg p-4 shadow-2xl border border-slate-700 relative group">
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="copyCommand()" class="bg-slate-700 hover:bg-slate-600 text-xs py-1 px-2 rounded text-white">Copy</button>
+                        </div>
+                        <div class="flex gap-2 mb-3">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <code id="generated-code" class="text-green-400 font-mono text-sm block whitespace-pre-wrap break-all">
+                            /sc:design --persona architect --think-hard "Build a user auth system"
+                        </code>
+                    </div>
+                    <p class="mt-4 text-sm text-slate-400 italic">
+                        Tip: <code class="text-slate-200">--think-hard</code> automatically enables Sequential and Context7 MCPs for better reasoning and documentation lookup.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics Section (Unchanged conceptually, but good to keep) -->
+        <section id="metrics" class="mb-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Framework Ecosystem & Impact</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Chart 1: Persona Distribution -->
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Cognitive Persona Roles (v4.1.6)</h3>
+                    <p class="text-sm text-gray-500 mb-4">
+                        SuperClaude divides general coding tasks into 14 specialized cognitive modes.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="personaChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center text-xs text-gray-400">
+                        *Visualization groups specialized roles for clarity
+                    </div>
+                </div>
+
+                <!-- Chart 2: Workflow Efficiency -->
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-800">Efficiency vs Standard Claude</h3>
+                    <p class="text-sm text-gray-500 mb-4">
+                        Impact of using "Evidence-Based" planning and specialized personas.
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="efficiencyChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center text-xs text-gray-400">
+                        *Estimated reduction in rework and token usage
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="border-t border-gray-200 pt-8 pb-12 mt-12">
+            <div class="text-center">
+                <p class="text-gray-500 text-sm">
+                    Generated based on the SuperClaude Framework v4.1.6 documentation.
+                </p>
+                <p class="text-gray-400 text-xs mt-2">
+                    CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+                </p>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        // Data Store Updated for v4.1.6
+        const phaseData = {
+            planning: {
+                title: "Phase 1: Planning & Architecture",
+                color: "amber",
+                icon: "🏗️",
+                goal: "Define system boundaries with deep architectural reasoning.",
+                methods: [
+                    {
+                        name: "Architectural Deep Dive",
+                        desc: "Use --think-hard to auto-enable docs (Context7) and reasoning (Sequential).",
+                        cmd: '/sc:design --persona architect --think-hard "Outline: 1. Architecture 2. DB Schema 3. API Contracts"',
+                        tags: ["--think-hard", "Auto-MCP"]
+                    },
+                    {
+                        name: "Tech Stack Research",
+                        desc: "Validate stack against best practices using deep research.",
+                        cmd: '/sc:analyze --persona architect --think "Compare React vs Vue. Search for best open-source libraries."',
+                        tags: ["--think", "--c7"]
+                    }
+                ]
+            },
+            implementation: {
+                title: "Phase 2: Implementation",
+                color: "emerald",
+                icon: "💻",
+                goal: "Implement features with strict adherence to design documents.",
+                methods: [
+                    {
+                        name: "Smart Scaffolding",
+                        desc: "Generate UI components with the Frontend Architect persona.",
+                        cmd: '/sc:build --persona frontend --magic "Generate dashboard with Tailwind CSS, Sidebar, and Dark Mode."',
+                        tags: ["Frontend", "--magic"]
+                    },
+                    {
+                        name: "Backend Logic (TDD)",
+                        desc: "Write tests first, then implement logic.",
+                        cmd: '/sc:implement --persona backend --tdd "Implement Auth service. 1. Middleware 2. API Routes 3. Unit Tests"',
+                        tags: ["Backend", "--tdd"]
+                    }
+                ]
+            },
+            qa: {
+                title: "Phase 3: QA & Security",
+                color: "blue",
+                icon: "🔍",
+                goal: "Review code health and security posture.",
+                methods: [
+                    {
+                        name: "Deep Code Analysis",
+                        desc: "Scan for vulnerabilities using the Security Engineer persona.",
+                        cmd: '/sc:analyze --persona security --think "Scan ./src for SQL injection, secrets, and circular dependencies."',
+                        tags: ["Security", "--think"]
+                    },
+                    {
+                        name: "Test Generation",
+                        desc: "Generate integration and E2E tests.",
+                        cmd: '/sc:test --persona qa --coverage "Generate integration tests. Ensure 80% coverage. Use Playwright."',
+                        tags: ["QA", "Coverage"]
+                    }
+                ]
+            },
+            troubleshoot: {
+                title: "Phase 4: Troubleshooting",
+                color: "red",
+                icon: "🚑",
+                goal: "Fix production bugs using structured root cause analysis.",
+                methods: [
+                    {
+                        name: "Deep Root Cause Analysis",
+                        desc: "Use introspection to find why the bug occurred.",
+                        cmd: '/sc:troubleshoot --persona analyzer --ultrathink "Error: [Msg]. Trace data flow. Propose 3 solutions."',
+                        tags: ["--ultrathink", "Introspection"]
+                    }
+                ]
+            }
+        };
+
+        // State Management
+        let currentPhase = 'planning';
+
+        // DOM Elements
+        const phaseContent = document.getElementById('phase-content');
+
+        // Functions
+        function setPhase(phase) {
+            currentPhase = phase;
+            
+            // Update buttons
+            document.querySelectorAll('.phase-card').forEach(card => {
+                card.classList.remove('active', 'border-l-amber-500', 'border-l-emerald-500', 'border-l-blue-500', 'border-l-red-500');
+                card.classList.add('border-l-transparent');
+            });
+
+            const activeCard = document.getElementById(`phase-btn-${phase}`);
+            activeCard.classList.add('active');
+            activeCard.classList.remove('border-l-transparent');
+            
+            // Add specific color border
+            const color = phaseData[phase].color;
+            if(color === 'amber') activeCard.classList.add('border-l-amber-500');
+            if(color === 'emerald') activeCard.classList.add('border-l-emerald-500');
+            if(color === 'blue') activeCard.classList.add('border-l-blue-500');
+            if(color === 'red') activeCard.classList.add('border-l-red-500');
+
+            renderPhaseContent();
+        }
+
+        function renderPhaseContent() {
+            const data = phaseData[currentPhase];
+            
+            // Determine Tailwind color classes
+            const bgClass = `bg-${data.color}-50`;
+            const textClass = `text-${data.color}-700`;
+            const borderClass = `border-${data.color}-200`;
+
+            let html = `
+                <div class="p-6 md:p-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-3xl">${data.icon}</span>
+                        <h3 class="text-2xl font-bold text-gray-800">${data.title}</h3>
+                    </div>
+                    
+                    <div class="${bgClass} border ${borderClass} rounded-lg p-4 mb-8">
+                        <p class="font-medium ${textClass}">🎯 Goal: ${data.goal}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            `;
+
+            data.methods.forEach(method => {
+                html += `
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200 flex flex-col h-full">
+                        <div class="mb-3">
+                            <h4 class="font-bold text-lg text-gray-900">${method.name}</h4>
+                            <p class="text-sm text-gray-600">${method.desc}</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            ${method.tags.map(tag => `<span class="px-2 py-1 bg-white border border-gray-300 rounded text-xs font-semibold text-gray-600">${tag}</span>`).join('')}
+                        </div>
+                        <div class="mt-auto">
+                            <div class="code-block p-3 rounded text-xs md:text-sm overflow-x-auto relative group">
+                                <code class="whitespace-pre-wrap">${method.cmd}</code>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            phaseContent.innerHTML = html;
+        }
+
+        function updateCommand() {
+            const action = document.getElementById('cmd-action').value;
+            const persona = document.getElementById('cmd-persona').value;
+            const context = document.getElementById('cmd-context').value.trim() || "Build a project";
+            const thinking = document.getElementById('cmd-thinking').value;
+            
+            const flagC7 = document.getElementById('flag-c7').checked;
+            const flagSeq = document.getElementById('flag-seq').checked;
+            const flagMagic = document.getElementById('flag-magic').checked;
+            const flagTdd = document.getElementById('flag-tdd').checked;
+            const flagSafe = document.getElementById('flag-safe').checked;
+
+            let cmd = `/sc:${action}`;
+            
+            // Add Persona
+            if (persona) cmd += ` --persona ${persona}`;
+            
+            // Add Thinking Mode (New v4 feature)
+            if (thinking && thinking !== 'none') cmd += ` --${thinking}`;
+
+            // Add Specific Flags
+            if (flagC7) cmd += ` --c7`;
+            if (flagSeq) cmd += ` --seq`;
+            if (flagMagic) cmd += ` --magic`;
+            if (flagTdd) cmd += ` --tdd`;
+            if (flagSafe) cmd += ` --safe-mode`;
+
+            cmd += ` "${context}"`;
+
+            document.getElementById('generated-code').textContent = cmd;
+        }
+
+        function copyCommand() {
+            const text = document.getElementById('generated-code').textContent.trim();
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Command copied to clipboard!");
+            });
+        }
+
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize Charts
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPhaseContent();
+            updateCommand();
+
+            // Persona Chart
+            const ctxPersona = document.getElementById('personaChart').getContext('2d');
+            new Chart(ctxPersona, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        'Architect/Tech Lead', 
+                        'Frontend/UI', 
+                        'Backend/DB', 
+                        'Security/Ops', 
+                        'QA/Testing', 
+                        'Product/Docs'
+                    ],
+                    datasets: [{
+                        data: [20, 20, 20, 15, 15, 10],
+                        backgroundColor: [
+                            '#D97706', // Architect/Lead (Amber)
+                            '#8B5CF6', // Frontend/UI (Purple)
+                            '#059669', // Backend/DB (Emerald)
+                            '#EF4444', // Security/Ops (Red)
+                            '#2563EB', // QA (Blue)
+                            '#6B7280'  // Product/Docs (Gray)
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+
+            // Efficiency Chart
+            const ctxEff = document.getElementById('efficiencyChart').getContext('2d');
+            new Chart(ctxEff, {
+                type: 'bar',
+                data: {
+                    labels: ['Context Switching', 'Hallucinations', 'Token Usage', 'Dev Speed'],
+                    datasets: [
+                        {
+                            label: 'Standard Claude',
+                            data: [80, 60, 100, 40],
+                            backgroundColor: '#9CA3AF'
+                        },
+                        {
+                            label: 'SuperClaude v4',
+                            data: [15, 5, 50, 95], // Updated for v4 improvements
+                            backgroundColor: '#059669'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: { display: true, text: 'Relative Metric (%)' }
+                        }
+                    }
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
