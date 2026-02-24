@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import DarkModeToggle from "@/components/DarkModeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +29,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider>
+          {/* Dark Mode Toggle - Fixed Position */}
+          <div className="fixed top-4 right-4 z-50">
+            <DarkModeToggle />
+          </div>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
